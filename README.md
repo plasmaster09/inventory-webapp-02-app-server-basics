@@ -254,3 +254,108 @@ and change the `href` so it says
 <a class="btn-small waves-effect waves-light" href="/stuff/item">
 ```
 Now the two "Info/Edit" buttons on the stuff inventory page should link to the item detail page.
+
+
+## Adding logging
+One final addition (for now) to our server: we'd like to "log" records of all HTTP requests made to the server. This can be helpful during development.
+
+One way to do this is to add a `console.log` statement in each of our routes, like this:
+
+```js
+// define a route for the default home page
+app.get( "/", ( req, res ) => {
+    console.log("GET /");
+    res.sendFile( __dirname + "/views/index.html" );
+} );
+
+// define a route for the stuff inventory page
+app.get( "/stuff", ( req, res ) => {
+    console.log("GET /stuff");
+    res.sendFile( __dirname + "/views/stuff.html" );
+} );
+
+// define a route for the item detail page
+app.get( "/stuff/item", ( req, res ) => {
+    console.log("GET /stuff/item");
+    res.sendFile( __dirname + "/views/item.html" );
+} );
+```
+
+(Re)start the server again, and visit each page. Notice that the messages print out to the terminal as each request comes in.
+
+So far, we've only used one of the two parameters in the route handler function: the `res` object, which represents the HTTP response that the handler is supposed to prepare for sending back. We've already used the `send` and `sendFile` methods of it. 
+
+The other parameter `req` is an object that represents the HTTP request, and all the information that is sent with it. For example, the properties `url` and `method` get the request's path and method type, respectively. Even though that particular information can be derived from the route definition, the `req` object can be quite useful.
+
+We can, then, replace each of the 3 different `console.log` statements with the same one:
+
+```js
+    console.log(`${req.method} ${req.url}`);
+```
+
+### Logging with "middleware"
+It seems a bit silly now, that we have the same `console.log` statement in each of our routes. We don't want to code the same thing in every route if we can write it just once.
+
+This brings us to a powerful concept/tool in the Express framework: "**middleware**". Middleware are functions that can process requests *before* being finally handled. We can specify that middleware ought to be applied to *all* incoming requests with the `app.use` method. 
+
+Update the routing code to this:
+```js
+// define middleware that logs all incoming requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+} );
+
+// define a route for the default home page
+app.get( "/", ( req, res ) => {
+    res.sendFile( __dirname + "/views/index.html" );
+} );
+
+// define a route for the stuff inventory page
+app.get( "/stuff", ( req, res ) => {
+    res.sendFile( __dirname + "/views/stuff.html" );
+} );
+
+// define a route for the item detail page
+app.get( "/stuff/item", ( req, res ) => {
+    res.sendFile( __dirname + "/views/item.html" );
+} );
+```
+
+We have moved our `console.log` statements into a single middleware function, registered with `app.use()`. Like the route handlers, middleware functions have the parameters `req` and `res`, but also `next`. `next` is a function, which is called to pass the control on from the middleware to the next thing. 
+
+Notice: the middleware is registered ***above*** the handlers. *This is crucial*, as Express will apply the middleware and handlers *in the order defined*. If the middleware is moved below any of the routes, those routes will handle the request and the middleware will not be used (you can try this out and see what happens!)
+
+Try running and testing the server now.  You'll notice that the middleware even logs requests for invalid endpoints (those without defined routes).
+
+#### The `morgan` module
+
+Defining our own middleware can be very useful, but a lot of very useful middleware can be imported from modules. Our bare-bones logger middleware works fine, but let's replace it with a much nicer one from the `morgan` module.
+
+This module needs to be installed first:
+```
+npm install morgan
+```
+
+Somewhere in the first section of the `app.js` file, you should import the `morgan` module with:
+
+```js
+const logger = require("morgan");
+```
+
+Finally, replace our custom logging middleware with this:
+
+```js
+app.use(logger("dev"));
+```
+
+Try running and testing the server once again. You'll notice that, in addition to logging the request method and path, information about the *response* is also logged, such as the (color coded!) status code and the response time.
+
+> Side note: You might notice that in addition to `200` and `404` status codes being logged, there are a lot of `304` status codes being sent, which means `NOT MODIFIED`. When the server notices the same client is sending the same request repeatedly, and it also knows the response content hasn't changed, it will send this status code instead of `200 OK` and not bother re-sending the content. This is because the client's browser is likely to have "cached" (temporarily saved) the last response. If the server is mistaken, the client can send a special request insisting that the content is re-sent. This generally saves time and computational/network resources.
+
+##  Conclusion:
+You've set up a NodeJS project, and you've implemented a simple Express web server, learning about the basics of HTTP requests/responses and defining routes.
+
+Of course, the server so far is not very different or better than using a static file server. The pages themselves, of course, are also still just static prototypes.
+
+Next, we'll discuss databases and how the web server can be use them to put real data into the pages.
