@@ -185,3 +185,50 @@ In your browser, go to `localhost:8080/stuff` and `localhost:8080/stuff/item` an
 Then, try a path that wasn't defined in the routing, like `locahost:8080/notworking`. You should see a message that says `Cannot GET /notworking`. Express automatically handles any requests to endpoints we didn't set up routes for by sending this simple message.
 
 If you use Chrome or Firefox, you can open your browser's Developer Tools and see the network activity. (right-click on your browser, choose **Inspect** and open the **Network** tab). This helps you see details about HTTP requests and responses, such as status codes. After opening, try hitting both valid and invalid routes again. The valid ones should have a status code of `200 OK` , and the invalid ones a `404 NOT FOUND`.
+
+## Sending files in the responses
+
+Right now, of course, the server only sends snippets of HTML. We want to send our prototype HTML pages, which are the files `index.html`, `stuff.html`, and `item.html`. 
+
+First, let's organize our prototype files by placing them into a new subdirectory (aka folder) called `views`.
+
+At this point, your file structure should look something like this:
+```
+|-node_modules
+| |-...
+|-views
+| |-index.html
+| |-item.html
+| |-stuff.html
+|-.gitignore
+|-app.js
+|-package-locks.json
+|-package.json
+```
+
+Then, update the routing code to this:
+
+```js
+// define a route for the default home page
+app.get( "/", ( req, res ) => {
+    res.sendFile( __dirname + "/views/index.html" );
+} );
+
+// define a route for the stuff inventory page
+app.get( "/stuff", ( req, res ) => {
+    res.sendFile( __dirname + "/views/stuff.html" );
+} );
+
+// define a route for the item detail page
+app.get( "/stuff/item", ( req, res ) => {
+    res.sendFile( __dirname + "/views/item.html" );
+} );
+```
+
+The `res.sendFile` method does exactly what you think it does: it sends a file, given by an absolute path, in the HTTP response. 
+
+> To give the absolute path of the file, we use a special variable that exists in NodeJS called `__dirname`, which contains the path of the root directory of the program. Appended to that is the *relative* path of each file in the project: the containing `views` directory, then the file name. Keeping track of where everything is located is tricky - which is why organized file structure is important!
+
+Restart the server, and try visiting your `localhost` pages in the browser again. Ta-da! You should see your prototype pages appear instead of the little fragments.
+
+

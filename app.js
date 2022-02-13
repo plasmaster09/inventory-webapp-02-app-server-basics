@@ -5,17 +5,17 @@ const port = 8080;
 
 // define a route for the default home page
 app.get( "/", ( req, res ) => {
-    res.send( "<h1>Hello world!</h1>" );
+    res.sendFile( __dirname + "/views/index.html" );
 } );
 
 // define a route for the stuff inventory page
 app.get( "/stuff", ( req, res ) => {
-    res.send( "<h1>This is the stuff inventory page.</h1>" );
+    res.sendFile( __dirname + "/views/stuff.html" );
 } );
 
 // define a route for the item detail page
 app.get( "/stuff/item", ( req, res ) => {
-    res.send( "<h1>This is the item detail page.</h1>" );
+    res.sendFile( __dirname + "/views/item.html" );
 } );
 
 // start the server
