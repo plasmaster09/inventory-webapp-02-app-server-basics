@@ -152,3 +152,36 @@ Even though this is basically the simplest possible express web server you can w
 >We won't use `express-generator` in this tutorial; rather, we'll build up our app's code and structure organically, understanding each new part as it becomes relevant and necessary. Eventually, our final structure will be very similar to `express-generator` produces, at which point you might better appreciate the tool for future projects.
 >
 > If you're curious enough to dig in now, Express has some [terse starting instructions for express-generator](https://expressjs.com/en/starter/generator.html), and MDN's has a [second part to their express tutorial](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website) that explains the output of `express-generator` nicely.
+
+# Making a simple app server for our prototypes 
+
+Let's update to the "Hello World!" server to actually serve our prototype pages. 
+
+## Adding and exploring more routes
+
+The existing route handles the "/" path, which is the homepage.Let's start by adding two more routes:
+
+```js
+// define a route for the default home page
+app.get( "/", ( req, res ) => {
+    res.send( "<h1>Hello world!</h1>" );
+} );
+
+// define a route for the stuff inventory page
+app.get( "/stuff", ( req, res ) => {
+    res.send( "<h1>This is the stuff inventory page.</h1>" );
+} );
+
+// define a route for the item detail page
+app.get( "/stuff/item", ( req, res ) => {
+    res.send( "<h1>This is the item detail page.</h1>" );
+} );
+```
+
+If you haven't yet, stop your old server (`Ctrl-C` in the terminal) and run it again (`node app.js`). If you forget to stop your old server, you'll get an error like `Error: listen EADDRINUSE: address already in use :::8080`. 
+
+In your browser, go to `localhost:8080/stuff` and `localhost:8080/stuff/item` and see the corresponding messages. 
+
+Then, try a path that wasn't defined in the routing, like `locahost:8080/notworking`. You should see a message that says `Cannot GET /notworking`. Express automatically handles any requests to endpoints we didn't set up routes for by sending this simple message.
+
+If you use Chrome or Firefox, you can open your browser's Developer Tools and see the network activity. (right-click on your browser, choose **Inspect** and open the **Network** tab). This helps you see details about HTTP requests and responses, such as status codes. After opening, try hitting both valid and invalid routes again. The valid ones should have a status code of `200 OK` , and the invalid ones a `404 NOT FOUND`.
