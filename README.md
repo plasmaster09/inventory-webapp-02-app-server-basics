@@ -231,4 +231,26 @@ The `res.sendFile` method does exactly what you think it does: it sends a file, 
 
 Restart the server, and try visiting your `localhost` pages in the browser again. Ta-da! You should see your prototype pages appear instead of the little fragments.
 
+### Fixing page links
 
+The only issue now is that the link-buttons that navigate between the pages themselves don't work correctly. They need to use the same routes we defined in the server.
+
+The first is in `index.html`. Find this part:
+```html
+<a class="btn" href="stuff.html">...
+```
+and change the `href` so it says
+```html
+<a class="btn" href="/stuff">...
+```
+Now the "Get started!" button on the homepage should link to the stuff inventory page.
+
+The second and third are in `stuff.html`. Find both instances of:
+```html
+<a class="btn-small waves-effect waves-light" href="item.html">
+```
+and change the `href` so it says
+```html
+<a class="btn-small waves-effect waves-light" href="/stuff/item">
+```
+Now the two "Info/Edit" buttons on the stuff inventory page should link to the item detail page.
