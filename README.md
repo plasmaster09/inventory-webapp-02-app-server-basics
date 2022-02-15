@@ -359,3 +359,5 @@ You've set up a NodeJS project, and you've implemented a simple Express web serv
 Of course, the server so far is not very different or better than using a static file server. The pages themselves, of course, are also still just static prototypes.
 
 Next, we'll discuss databases and how the web server can be use them to put real data into the pages.
+
+Next up: [Part 03: Database Layer: Database connection and first table set-up](https://github.com/atcs-wang/inventory-webapp-03-db-connection-setup/)
