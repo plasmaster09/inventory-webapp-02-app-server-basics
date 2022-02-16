@@ -10,7 +10,7 @@ MDN has a very good [starting tutorial for Express](https://developer.mozilla.or
 
 The second layer of a web app is the **web application server**, or just "web server" or "app server", for short. In this tutorial, we will create a simple web server that serves your static prototype pages; in later sections. Later, this server will be greatly improved and expanded.
 
-# Setting up a NodeJS / Express project
+## (2.1) Setting up a NodeJS / Express project
 
 > This is adapted from [expressjs.com's installation instructions](https://expressjs.com/en/starter/installing.html).
 
@@ -78,7 +78,7 @@ This example's repository is the same - if you clone it, simply `npm install` to
 
 > Strictly speaking, the `package-lock.json` is only necessary if exact package versioning is important. If only the `package.json` is available, `npm` may install any acceptable above-minimum version of direct dependencies, and will figure out the indirect dependencies.
 
-# A "Hello world" example server
+## (2.2) A "Hello world" example server
 
 > This is adapted from [expressjs.com's "Hello World" instructions](https://expressjs.com/en/starter/hello-world.html), which includes a similar example which is live-editable in-browser!
 
@@ -112,7 +112,7 @@ Open your browser and go to `http://localhost:8080`. You should see the "Hello w
 
 You can type `Ctrl-C` in the terminal to stop the server. 
 
-## What's going on with "Hello World"?
+### (2.2.1) What's going on with "Hello World"?
 
 > Before continuing, you should have a basic understanding of HTTP and its associated vocabulary: 
 > 1. A **client** web browser visiting a website sends an **HTTP request** to the site's web **server**, which is hosted at a certain **domain** (like `www.google.com` or `www.youtube.com`). 
@@ -146,18 +146,18 @@ Even though this is basically the simplest possible express web server you can w
 - When we run `node app.js`, the server is merely running on your local computer or network - not configured receive requests from the wider internet. (Later, we'll get a cloud server with a **domain** for that). That's fine for now - browsers use the special pseudo-domain `localhost:PORT` to send HTTP requests to local servers running on certain ports.
 
 
-> ### A quick note about `express-generator`
+> #### A quick note about `express-generator`
 >After the "Hello World" app, many `express` tutorials (including the [MDN one](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/development_environment) linked above) introduce a tool called `express-generator`, which sets up a 'skeleton' project and provides a lot of "boilerplate" code (that is, code that many projects start with). This can help jump start the building of a project, but can be bit overwhelming for a first-time learner.
 >
 >We won't use `express-generator` in this tutorial; rather, we'll build up our app's code and structure organically, understanding each new part as it becomes relevant and necessary. Eventually, our final structure will be very similar to `express-generator` produces, at which point you might better appreciate the tool for future projects.
 >
 > If you're curious enough to dig in now, Express has some [terse starting instructions for express-generator](https://expressjs.com/en/starter/generator.html), and MDN's has a [second part to their express tutorial](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website) that explains the output of `express-generator` nicely.
 
-# Making a simple app server for our prototypes 
+## (2.3) Making a simple app server for our prototypes 
 
 Let's update to the "Hello World!" server to actually serve our prototype pages. 
 
-## Adding and exploring more routes
+### (2.3.1) Adding and exploring more routes
 
 The existing route handles the "/" path, which is the homepage.Let's start by adding two more routes:
 
@@ -186,7 +186,7 @@ Then, try a path that wasn't defined in the routing, like `locahost:8080/notwork
 
 If you use Chrome or Firefox, you can open your browser's Developer Tools and see the network activity. (right-click on your browser, choose **Inspect** and open the **Network** tab). This helps you see details about HTTP requests and responses, such as status codes. After opening, try hitting both valid and invalid routes again. The valid ones should have a status code of `200 OK` , and the invalid ones a `404 NOT FOUND`.
 
-## Sending files in the responses
+### (2.3.2) Sending files in the responses
 
 Right now, of course, the server only sends snippets of HTML. We want to send our prototype HTML pages, which are the files `index.html`, `stuff.html`, and `item.html`. 
 
@@ -231,7 +231,7 @@ The `res.sendFile` method does exactly what you think it does: it sends a file, 
 
 Restart the server, and try visiting your `localhost` pages in the browser again. Ta-da! You should see your prototype pages appear instead of the little fragments.
 
-### Fixing page links
+### (2.3.3) Fixing page links
 
 The only issue now is that the link-buttons that navigate between the pages themselves don't work correctly. They need to use the same routes we defined in the server.
 
@@ -256,7 +256,7 @@ and change the `href` so it says
 Now the two "Info/Edit" buttons on the stuff inventory page should link to the item detail page.
 
 
-## Adding logging
+### (2.3.4) Adding logging
 One final addition (for now) to our server: we'd like to "log" records of all HTTP requests made to the server. This can be helpful during development.
 
 One way to do this is to add a `console.log` statement in each of our routes, like this:
@@ -293,7 +293,7 @@ We can, then, replace each of the 3 different `console.log` statements with the 
     console.log(`${req.method} ${req.url}`);
 ```
 
-### Logging with "middleware"
+#### (2.3.4.1)  Logging with "middleware"
 It seems a bit silly now, that we have the same `console.log` statement in each of our routes. We don't want to code the same thing in every route if we can write it just once.
 
 This brings us to a powerful concept/tool in the Express framework: "**middleware**". Middleware are functions that can process requests *before* being finally handled. We can specify that middleware ought to be applied to *all* incoming requests with the `app.use` method. 
@@ -328,7 +328,7 @@ Notice: the middleware is registered ***above*** the handlers. *This is crucial*
 
 Try running and testing the server now.  You'll notice that the middleware even logs requests for invalid endpoints (those without defined routes).
 
-#### The `morgan` module
+#### (2.3.4.2)  The `morgan` module
 
 Defining our own middleware can be very useful, but a lot of very useful middleware can be imported from modules. Our bare-bones logger middleware works fine, but let's replace it with a much nicer one from the `morgan` module.
 
@@ -353,7 +353,7 @@ Try running and testing the server once again. You'll notice that, in addition t
 
 > Side note: You might notice that in addition to `200` and `404` status codes being logged, there are a lot of `304` status codes being sent, which means `NOT MODIFIED`. When the server notices the same client is sending the same request repeatedly, and it also knows the response content hasn't changed, it will send this status code instead of `200 OK` and not bother re-sending the content. This is because the client's browser is likely to have "cached" (temporarily saved) the last response. If the server is mistaken, the client can send a special request insisting that the content is re-sent. This generally saves time and computational/network resources.
 
-##  Conclusion:
+## (2.4) Conclusion:
 You've set up a NodeJS project, and you've implemented a simple Express web server, learning about the basics of HTTP requests/responses and defining routes.
 
 Of course, the server so far is not very different or better than using a static file server. The pages themselves, of course, are also still just static prototypes.
