@@ -116,15 +116,15 @@ You can type `Ctrl-C` in the terminal to stop the server.
 
 > Before continuing, you should have a basic understanding of HTTP and its associated vocabulary: 
 > 1. A **client** web browser visiting a website sends an **HTTP request** to the site's web **server**, which is hosted at a certain **domain** (like `www.google.com` or `www.youtube.com`). 
-> 2. In addition to a **domain**, HTTP requests are also made to a particular **endpoint** of the server, which is a **path** (like `/search` or `/video`) and a specific request **method** (like `GET` or `POST`). 
+> 2. In addition to a **domain**, HTTP requests are also made to a particular **endpoint** of the server, which is a **path** (like `/search` or `/article`) and a specific request **method** (like `GET` or `POST`). 
 >    - Most of the request info is encoded in the **URL** of the website page: for example, the URL** of `atcs-wang.github.io/stuff.html` shows the domain is `atcs-wang.github.io` and the path is `/stuff.html`. (The default method is `GET`.)
 > 3. The web server should be constantly listening for requests from clients, then send back an appropriate **HTTP response** with a **status code** (like `200 OK`, or `404 NOT FOUND`) and a **body** with the requested data (like HTML pages).
 >
-> If you need a refresher on how this process and vocabulary, watch this short video: _____
+> If you need a refresher on how this process and vocabulary, watch this short video: https://www.youtube.com/watch?v=guvsH5OFizE
 
 Even though this is basically the simplest possible express web server you can write, there's quite a lot going on! Let's break down a few key parts.
 
-- The first section sets up the server: line 1 imports the "express" module using `require()`, which is used to create a server (`app`). A `port` number is also defined. During development/testing, the port can be any number from 1024 to 65353.
+- The first section sets up the server: line 1 imports the "express" module using `require()`, which is used to create a server (`app`). A `port` number is also defined. During development/testing, the port can be any number from 1024 to 65353; in deployed web servers, the standard port for HTTP is 80. However, 8080 is a common backup port for HTTP, so we'll use that one. 
 
 - The second section performs the "routing": configuring the server to handle certain HTTP request **endpoints** (aka **path** and **method**). The general pattern for defining a "route" looks like this:
     ```js
@@ -138,12 +138,12 @@ Even though this is basically the simplest possible express web server you can w
   ```
   This sends a response (via the object `res`) with a bit of HTML as the **body**. (The **status code** is automatically set to `200 OK`)
   
-  > NOTE: We'll get into routing more deeply soon; if you wish, ExpressJS has a [more detailed primer](https://expressjs.com/en/guide/routing.html).
+  > NOTE: We'll get into routing more deeply soon; if you want to dive in early, ExpressJS has a [more detailed primer](https://expressjs.com/en/guide/routing.html).
 
 - Finally, the last section tell the server to start running; this makes the server "loop" repeatedly, listening for HTTP requests on the given `port` number. It prints a message to the console confirming that it has started.  (It doesn't stop until you manually stop it with `Ctrl-C` in the terminal.)
   > NOTE: Making the message string with backticks (\`) instead of typical single or double quotes lets us interpolate the value of `port` into the string with ``` `${ port }` ```. These kinds of strings are called "Template literals", and are very convenient for constructing strings with variable values.
 
-- When we run `node app.js`, the server is merely running on your local computer or network - not configured receive requests from the wider internet. (Later, we'll get a cloud server with a **domain** for that). That's fine for now - browsers use the special pseudo-domain `localhost:PORT` to send HTTP requests to local servers running on certain ports.
+- When we run `node app.js`, the server is merely running on your local computer or network - which is (almost certainly) not configured to receive requests from the wider internet. (Later, we'll get a cloud server with a **domain** for that). That's fine for now - browsers use the special pseudo-domain `localhost:PORT` to send HTTP requests to local servers running on certain ports.
 
 
 > #### A quick note about `express-generator`
@@ -202,7 +202,7 @@ At this point, your file structure should look something like this:
 | |-stuff.html
 |-.gitignore
 |-app.js
-|-package-locks.json
+|-package-lock.json
 |-package.json
 ```
 
@@ -324,7 +324,7 @@ app.get( "/stuff/item", ( req, res ) => {
 
 We have moved our `console.log` statements into a single middleware function, registered with `app.use()`. Like the route handlers, middleware functions have the parameters `req` and `res`, but also `next`. `next` is a function, which is called to pass the control on from the middleware to the next thing. 
 
-Notice: the middleware is registered ***above*** the handlers. *This is crucial*, as Express will apply the middleware and handlers *in the order defined*. If the middleware is moved below any of the routes, those routes will handle the request and the middleware will not be used (you can try this out and see what happens!)
+Notice: the middleware is registered ***above*** the route handlers. *This is crucial*, as Express will apply the middleware and handlers *in the order defined*. If the middleware is moved below any of the route handlers, those route handlers will run first, handling the request and sending the response -  *without* ever running the middleware (you can try this out and see what happens!)
 
 Try running and testing the server now.  You'll notice that the middleware even logs requests for invalid endpoints (those without defined routes).
 
@@ -356,7 +356,7 @@ Try running and testing the server once again. You'll notice that, in addition t
 ## (2.4) Conclusion:
 You've set up a NodeJS project, and you've implemented a simple Express web server, learning about the basics of HTTP requests/responses and defining routes.
 
-Of course, the server so far is not very different or better than using a static file server. The pages themselves, of course, are also still just static prototypes.
+Of course, the server so far is not very different or better than using a static file server (like [VSCode's Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) or [Python's http.server module](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server#running_a_simple_local_http_server)). The pages themselves, of course, are also still just static prototypes.
 
 Next, we'll discuss databases and how the web server can be use them to put real data into the pages.
 
