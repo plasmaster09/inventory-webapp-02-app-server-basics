@@ -231,9 +231,11 @@ The `res.sendFile` method does exactly what you think it does: it sends a file, 
 
 Restart the server, and try visiting your `localhost` pages in the browser again. Ta-da! You should see your prototype pages appear instead of the little fragments.
 
+> If your protype pages use external resources like images, external styles, those won't load with your page yet. We'll address this in section 2.4 below.
+
 ### (2.3.3) Fixing page links
 
-The only issue now is that the link-buttons that navigate between the pages themselves don't work correctly. They need to use the same routes we defined in the server.
+A small issue now is that the link-buttons that navigate between the pages themselves don't work correctly. They need to use the same routes we defined in the server.
 
 The first is in `index.html`. Find this part:
 ```html
@@ -257,7 +259,7 @@ Now the two "Info/Edit" buttons on the stuff inventory page should link to the i
 
 
 ### (2.3.4) Adding logging
-One final addition (for now) to our server: we'd like to "log" records of all HTTP requests made to the server. This can be helpful during development.
+As we continue to build out and test our server, we'd like to "log" records of all HTTP requests made to the server. This can be helpful during development and debugging, and even during production for security and data integrity purposes.
 
 One way to do this is to add a `console.log` statement in each of our routes, like this:
 
@@ -353,7 +355,135 @@ Try running and testing the server once again. You'll notice that, in addition t
 
 > Side note: You might notice that in addition to `200` and `404` status codes being logged, there are a lot of `304` status codes being sent, which means `NOT MODIFIED`. When the server notices the same client is sending the same request repeatedly, and it also knows the response content hasn't changed, it will send this status code instead of `200 OK` and not bother re-sending the content. This is because the client's browser is likely to have "cached" (temporarily saved) the last response. If the server is mistaken, the client can send a special request insisting that the content is re-sent. This generally saves time and computational/network resources.
 
-## (2.4) Conclusion:
+## (2.4) Serving Static Files
+
+> ExpressJS.com has a brief explanation of static file serving: 
+[https://expressjs.com/en/starter/static-files.html](https://expressjs.com/en/starter/static-files.html)
+
+HTML pages often reference other "static" files (such as external CSS, external JS, fonts, images, etc.) as required resources for the webpage. While rendering the page, the web browser will make additional HTTP requests to the server for those files.
+
+Since such static files are often numerous (and typically referenced by their actual file name/path, rather than a custom URL path), we'd rather not set up custom routes for each file. 
+
+Thankfully, it is easy to configure Express to serve all static files in a given folder via another middleware - the so-called "static" middleware, which is built into the express module:
+
+1. Create a folder in the root of your project called `public`.
+2. Add this line to `app.js` *below* the `app.use(logger("dev"))` line:
+    ```js
+    // define middleware that serves static resources in the public directory
+    app.use(express.static(__dirname + '/public'));
+    ```
+
+
+Now when the app receives HTTP requests with URL paths that match relative filepaths within the `public` folder, the middleware will simply respond with the resource.  
+
+> You could test this immediately by adding a simple text file `sample.txt` to the `public` folder. Then aim your browser at
+>  ```
+>  localhost:8080/sample.txt
+>```
+> Notice that the request and response is logged in the Terminal, just like your other pages.
+
+We can now make a few improvements to our pages that will utilize static resources:
+### (2.4.1) Using external stylesheets (CSS) and external scripts (JS)
+
+Now that we can also reference static files served by our own server, we can also utilize external spreadsheets.
+
+Two of the views - `stuff.html` and `item.html` - currently have internal stylesheets that are identical:
+```html
+<style>
+    form {
+        border: solid 2px lightgrey;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    form:focus-within {
+        border-color: orange;
+    }
+
+    tr:hover {
+        background-color: #F0F0F0;
+    }
+</style>
+
+```
+This CSS would be better off as a single external stylesheet. Inside of the `public` folder, create a new folder called `stylesheets`, and inside of *that* new folder create a new file called `stuffStyle.css`. Move the contents of the style tag into `stuffStyle.css`, and replace the style tags in both views with:
+
+```html
+<link rel="stylesheet" href="/stylesheets/stuffStyle.css">
+```
+> Make sure this link is placed *below* the links to the Materialize CSS; this makes sure that the cascade prioritizes our external CSS over the default Materialize styles.
+>
+> Also, don't forget the `/` at the beginning - this makes the path *absolute*, not relative to the current page's URL.
+
+After restarting your server, you can verify that the server is serving `stuffStyle.css` by directly visiting `http://localhost:8080/stylesheets/stuffStyle.css` in your browser. The logs in the Terminal should show the GET request for the stylesheet.
+
+Then, check that the inventory and item pages still render with the custom styles (that is, a border on the form and table highlighting on mouse hover).  The logs in the Terminal will show GET requests both for that page, *and* for the stylesheet.
+
+>If the stylesheet can be loaded on the browser, but the server logs don't display the GET requests for it, double check that the line in `app.js` setting up the static file middleware comes *after* the line setting up the logger middleware. If it comes *before*, the handling of static files will only be logged if NOT found. 
+>
+>You may actually prefer to NOT see server logs for every successful static resource request - in which case you can switch the order of the two middleware.
+
+> You can also see all the referenced external files of an HTML page via the browser's Developer Tools - right-click Inspect, and click the Sources tab. The Network tab will show you the status of the actual HTTP requests for each of these resources too; check that the `/stylesheets/stuffStyle.css` request, and note the status code. This is a great way to debug if a resource doesn't appear to be loading.
+
+We could, if we wanted, do something similar to move the Javascript in the script tags at the bottom of our views into external scripts. Since they are so short right now, we will not bother yet.
+
+### (2.4.2) OPTIONAL: Serve Materialize CSS/JS locally instead of from a CDN
+
+Each of our views already reference external stylesheets and external scripts which contain Materialize's CSS and JS:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+...
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+```
+
+These are (currently) being served not from our own server but from another domain, `cdnjs.cloudflare.com`, which is a publicly accessible Content Deliver Network (CDN). 
+
+However, if you prefered to have these resources served from our own server instead, you can download the files from [Materialize's website](https://materializecss.com/getting-started.html). 
+
+Place `materialize.min.css` in  `public/stylesheets`, and `materialize.min.js` in `public/javascripts` (you may need to create the subfolder `javascripts`).
+
+Finally, change the link/script tag references to local paths instead:
+
+```html
+<link rel="stylesheet" href="stylesheets/materialize.min.css">
+...
+<script src="javascripts/materialize.min.js"></script>
+```
+
+> There are numerous benefits (better performance, increased reliability, cost savings, and resilience against cyber attacks.) associated with using a CDN instead. Hence, this is an optional step, and not represented in the code base.
+
+### (2.4.3) Using images
+
+Images are another common form of static files. We haven't put any on our pages so far, but we can add some now if we'd like!
+
+Let's add a simple image to the homepage.
+
+1. First, create a new folder in `public` called `images`.
+2. Then, add to it an image of your choice: our example image is `clutter-clipart.jpg`. (You can verify that the server is serving it by visiting `http://localhost:8080/images/clutter-clipart.jpg`.)
+3. Update `index.html` with an image tag somewhere:
+    ```html
+        <img src="/images/clutter-clipart.jpg">
+    ```
+4. Verify the image appears on the homepage. Similar to the external CSS file, you can also check the server logs and/or the browser Developer Tools to confirm the request is successfully made. 
+
+We won't add any other images to other pages in this example, but you can certainly do so if you wish.
+
+### (2.4.4) Browser tab icon - favicon.ico
+
+If you "Hard Refresh" your browser (Ctrl-Shift-R on Windows, Cmd-Shift-R Mac), you'll notice another GET request made to your server - `GET /favicon.ico`. 
+
+This is because the first time a browser visits a website, it requests an icon file (presumably called "**`favicon.ico`**") that can be used in the Tab. The browser will "cache" that icon for a while so it doesn't have to request it every time, but "Hard Refresh" forces the browser to clear its cache and ask again. So, if we add a `favicon.ico` file into the `public` folder (and possibly Hard Refresh the browser), it will be used as the browser's tab icon for all the pages of our webapp! 
+
+You can easily turn any image, text, or emoji into a favicon at [favicon.io](https://favicon.io/). For this example, we used the "Card File Box" emoji.
+
+> Optionally, if you prefer to use an icon file NOT called `favicon.ico` and/or store it elsewhere (e.g. a subfolder of `public`), you can add this to each page's head section to specify the location of the favicon. 
+>```html
+><link rel="shortcut icon" type="image/jpg" href="Favicon_Image_Location"/>
+>```
+>This technique also allows you to use different tab icons for different pages, if you so wish. 
+
+## (2.5) Conclusion:
 You've set up a NodeJS project, and you've implemented a simple Express web server, learning about the basics of HTTP requests/responses and defining routes.
 
 Of course, the server so far is not very different or better than using a static file server (like [VSCode's Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) or [Python's http.server module](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server#running_a_simple_local_http_server)). The pages themselves, of course, are also still just static prototypes.
