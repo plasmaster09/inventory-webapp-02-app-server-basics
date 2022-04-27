@@ -257,6 +257,14 @@ and change the `href` so it says
 ```
 Now the two "Info/Edit" buttons on the stuff inventory page should link to the item detail page.
 
+The fourth and final is in `item.html`. Find this part:
+```html
+<a class="btn-small waves-effect waves-light" href="stuff.html">
+```
+and change the `href` so it says
+```html
+<a class="btn-small waves-effect waves-light" href="/stuff">
+```
 
 ### (2.3.4) Adding logging
 As we continue to build out and test our server, we'd like to "log" records of all HTTP requests made to the server. This can be helpful during development and debugging, and even during production for security and data integrity purposes.
